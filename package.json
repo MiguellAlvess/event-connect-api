@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky",
     "dev": "tsx --watch --env-file=.env src/index.ts"
@@ -39,6 +40,7 @@
   },
   "dependencies": {
     "@types/express": "5.0.3",
+    "axios": "1.11.0",
     "core-js": "^3.44.0",
     "dotenv": "17.2.1",
     "drizzle-orm": "0.44.3",
