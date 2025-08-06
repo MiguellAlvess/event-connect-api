@@ -19,7 +19,7 @@ describe("Create Event Use Case", () => {
     expect(output.ticketPriceInCents).toBe(input.ticketPriceInCents)
     expect(output.ownerId).toBe(input.ownerId)
   })
-  test("Deve lançar um erro se o ownerId não for um UUID", async () => {
+  test("should throw an error if the ownerId is invalid", async () => {
     const input = {
       name: "Show",
       ticketPriceInCents: 1000,
@@ -30,5 +30,17 @@ describe("Create Event Use Case", () => {
     }
     const output = createEvent.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid ownerId"))
+  })
+  test("should throw an error if the ticket price is negative", async () => {
+    const input = {
+      name: "Sunset show",
+      ticketPriceInCents: -10,
+      latitude: -90,
+      longitude: -180,
+      date: new Date(new Date().setHours(new Date().getHours() + 1)),
+      ownerId: crypto.randomUUID(),
+    }
+    const output = createEvent.execute(input)
+    await expect(output).rejects.toThrow(new Error("Invalid ticket price"))
   })
 })
