@@ -55,4 +55,16 @@ describe("Create Event Use Case", () => {
     const output = createEvent.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid latitude"))
   })
+  test("should throw an error if the longitude is invalid", async () => {
+    const input = {
+      name: "GameDay Event",
+      ticketPriceInCents: 2000,
+      latitude: -90,
+      longitude: -200,
+      date: new Date(new Date().setHours(new Date().getHours() + 1)),
+      ownerId: crypto.randomUUID(),
+    }
+    const output = createEvent.execute(input)
+    await expect(output).rejects.toThrow(new Error("Invalid longitude"))
+  })
 })
