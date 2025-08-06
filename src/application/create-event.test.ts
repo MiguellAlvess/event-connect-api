@@ -67,4 +67,18 @@ describe("Create Event Use Case", () => {
     const output = createEvent.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid longitude"))
   })
+  test("should throw an error if the date is in the past", async () => {
+    const input = {
+      name: "FSC Presencial",
+      ticketPriceInCents: 2000,
+      latitude: -90,
+      longitude: -180,
+      date: new Date(new Date().setHours(new Date().getHours() - 2)),
+      ownerId: crypto.randomUUID(),
+    }
+    const output = createEvent.execute(input)
+    await expect(output).rejects.toThrow(
+      new Error("Date must be in the future")
+    )
+  })
 })
