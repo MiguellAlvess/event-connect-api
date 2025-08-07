@@ -16,6 +16,7 @@ export class EventRepositoryDatabase implements EventRepository {
       .insert(schema.eventsTable)
       .values({
         // @ts-expect-error - drizzle
+        id: input.id,
         date: input.date,
         ownerId: input.ownerId,
         name: input.name,
