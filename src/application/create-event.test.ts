@@ -81,4 +81,20 @@ describe("Create Event Use Case", () => {
       new Error("Date must be in the future")
     )
   })
+  test("should throw an error if an event already exists for the same date, latitude and longitude", async () => {
+    const date = new Date(new Date().setHours(new Date().getHours() + 2))
+    const input = {
+      name: "FSC Presencial",
+      ticketPriceInCents: 2000,
+      latitude: -90,
+      longitude: -180,
+      date,
+      ownerId: crypto.randomUUID(),
+    }
+    const output = await createEvent.execute(input)
+    expect(output.name).toBe(input.name)
+    expect(output.ticketPriceInCents).toBe(input.ticketPriceInCents)
+    const output2 = createEvent.execute(input)
+    expect(output2).rejects.toThrow(new Error("Event already exists"))
+  })
 })
