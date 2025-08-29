@@ -1,6 +1,7 @@
 import express from "express"
 import { EventRepositoryDatabase } from "./infra/repository/event-repository.js"
 import { CreateEvent } from "./application/create-event.js"
+import { db } from "./infra/db/client.js"
 
 const app = express()
 
@@ -10,7 +11,7 @@ app.post("/events", async (req, res) => {
   const { name, ticketPriceInCents, latitude, longitude, date, ownerId } =
     req.body
   try {
-    const eventRepositoryDatabase = new EventRepositoryDatabase()
+    const eventRepositoryDatabase = new EventRepositoryDatabase(db)
     const createEvent = new CreateEvent(eventRepositoryDatabase)
     const event = await createEvent.execute({
       date: new Date(date),

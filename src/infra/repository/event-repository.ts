@@ -10,13 +10,16 @@ if (!process.env.DATABASE_URL) {
 }
 
 export class EventRepositoryDatabase implements EventRepository {
-  constructor() {}
+  database: typeof db
+  constructor(database: typeof db) {
+    this.database = database
+  }
   async getByDateLatAndLong(params: {
     date: Date
     latitude: number
     longitude: number
   }): Promise<OnSiteEvent | null> {
-    const output = await db.query.eventsTable.findFirst({
+    const output = await this.database.query.eventsTable.findFirst({
       where: and(
         eq(schema.eventsTable.date, params.date),
         eq(schema.eventsTable.latitude, params.latitude.toString()),
@@ -37,7 +40,7 @@ export class EventRepositoryDatabase implements EventRepository {
     }
   }
   async create(input: OnSiteEvent): Promise<OnSiteEvent> {
-    const [output] = await db
+    const [output] = await this.database
       .insert(schema.eventsTable)
       .values({
         // @ts-expect-error - drizzle
