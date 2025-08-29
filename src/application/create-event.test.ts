@@ -1,8 +1,9 @@
+import { db } from "../infra/db/client.js"
 import { EventRepositoryDatabase } from "../infra/repository/event-repository.js"
 import { CreateEvent } from "./create-event.js"
 
 describe("Create Event Use Case", () => {
-  const createEvent = new CreateEvent(new EventRepositoryDatabase())
+  const createEvent = new CreateEvent(new EventRepositoryDatabase(db))
 
   test("should create a event successfully", async () => {
     const input = {

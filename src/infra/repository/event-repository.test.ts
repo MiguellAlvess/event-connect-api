@@ -1,8 +1,9 @@
+import { db } from "../db/client.js"
 import { EventRepositoryDatabase } from "./event-repository.js"
 
 describe("Event Respository", () => {
   test("should create a event on db", async () => {
-    const eventRepository = new EventRepositoryDatabase()
+    const eventRepository = new EventRepositoryDatabase(db)
     const id = crypto.randomUUID()
     const output = await eventRepository.create({
       id,
