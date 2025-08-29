@@ -1,17 +1,16 @@
 import "dotenv/config"
-import { drizzle } from "drizzle-orm/node-postgres"
 import * as schema from "../db/schema.js"
 import { EventRepository } from "../../application/create-event.js"
 import { OnSiteEvent } from "../../domain/on-site-event.js"
 import { and, eq } from "drizzle-orm"
+import { db } from "../db/client.js"
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not defined")
 }
 
-const db = drizzle(process.env.DATABASE_URL, { schema })
-
 export class EventRepositoryDatabase implements EventRepository {
+  constructor() {}
   async getByDateLatAndLong(params: {
     date: Date
     latitude: number
