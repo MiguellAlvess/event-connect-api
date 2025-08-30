@@ -10,10 +10,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 export class EventRepositoryDatabase implements EventRepository {
-  database: typeof db
-  constructor(database: typeof db) {
-    this.database = database
-  }
+  constructor(private database: typeof db) {}
   async getByDateLatAndLong(params: {
     date: Date
     latitude: number
