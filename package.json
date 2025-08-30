@@ -39,6 +39,7 @@
     "vitest": "3.2.4"
   },
   "dependencies": {
+    "@testcontainers/postgresql": "11.5.1",
     "@types/express": "5.0.3",
     "axios": "1.11.0",
     "core-js": "^3.44.0",

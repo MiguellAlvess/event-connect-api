@@ -1,11 +1,29 @@
 import { db } from "../infra/db/client.js"
+import { eventsTable } from "../infra/db/schema.js"
+import { startPostgresTestDb } from "../infra/db/test-db.js"
 import { EventRepositoryDatabase } from "../infra/repository/event-repository.js"
 import { CreateEvent } from "./create-event.js"
 
+import { StartedPostgreSqlContainer } from "@testcontainers/postgresql"
+
 describe("Create Event Use Case", () => {
-  const createEvent = new CreateEvent(new EventRepositoryDatabase(db))
+  let database: typeof db
+  let container: StartedPostgreSqlContainer
+  beforeAll(async () => {
+    const testDatabase = await startPostgresTestDb()
+    database = testDatabase.db
+    container = testDatabase.container
+  })
+  afterAll(async () => {
+    await database.$client.end()
+    await container.stop()
+  })
+  beforeEach(async () => {
+    await database.delete(eventsTable).execute()
+  })
 
   test("should create a event successfully", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const input = {
       name: "Party sunset",
       ticketPriceInCents: 1000,
@@ -21,6 +39,7 @@ describe("Create Event Use Case", () => {
     expect(output.ownerId).toBe(input.ownerId)
   })
   test("should throw an error if the ownerId is invalid", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const input = {
       name: "Show",
       ticketPriceInCents: 1000,
@@ -33,6 +52,7 @@ describe("Create Event Use Case", () => {
     await expect(output).rejects.toThrow(new Error("Invalid ownerId"))
   })
   test("should throw an error if the ticket price is negative", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const input = {
       name: "Sunset show",
       ticketPriceInCents: -10,
@@ -45,6 +65,7 @@ describe("Create Event Use Case", () => {
     await expect(output).rejects.toThrow(new Error("Invalid ticket price"))
   })
   test("should throw an error if the latitude is invalid", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const input = {
       name: "Mindset Event",
       ticketPriceInCents: 2000,
@@ -57,6 +78,7 @@ describe("Create Event Use Case", () => {
     await expect(output).rejects.toThrow(new Error("Invalid latitude"))
   })
   test("should throw an error if the longitude is invalid", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const input = {
       name: "GameDay Event",
       ticketPriceInCents: 2000,
@@ -69,6 +91,7 @@ describe("Create Event Use Case", () => {
     await expect(output).rejects.toThrow(new Error("Invalid longitude"))
   })
   test("should throw an error if the date is in the past", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const input = {
       name: "FSC Presencial",
       ticketPriceInCents: 2000,
@@ -83,6 +106,7 @@ describe("Create Event Use Case", () => {
     )
   })
   test("should throw an error if an event already exists for the same date, latitude and longitude", async () => {
+    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
     const date = new Date(new Date().setHours(new Date().getHours() + 2))
     const input = {
       name: "FSC Presencial",
