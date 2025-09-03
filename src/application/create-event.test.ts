@@ -22,8 +22,14 @@ describe("Create Event Use Case", () => {
     await database.delete(eventsTable).execute()
   })
 
+  const makeSut = () => {
+    const eventRepository = new EventRepositoryDatabase(database)
+    const sut = new CreateEvent(eventRepository)
+    return { sut, eventRepository }
+  }
+
   test("should create a event successfully", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const input = {
       name: "Party sunset",
       ticketPriceInCents: 1000,
@@ -32,14 +38,14 @@ describe("Create Event Use Case", () => {
       date: new Date(new Date().setHours(new Date().getHours() + 1)),
       ownerId: crypto.randomUUID(),
     }
-    const output = await createEvent.execute(input)
+    const output = await sut.execute(input)
     expect(output.id).toBeDefined()
     expect(output.name).toBe(input.name)
     expect(output.ticketPriceInCents).toBe(input.ticketPriceInCents)
     expect(output.ownerId).toBe(input.ownerId)
   })
   test("should throw an error if the ownerId is invalid", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const input = {
       name: "Show",
       ticketPriceInCents: 1000,
@@ -48,11 +54,11 @@ describe("Create Event Use Case", () => {
       date: new Date(new Date().setHours(new Date().getHours() + 1)),
       ownerId: "invalid-uuid",
     }
-    const output = createEvent.execute(input)
+    const output = sut.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid ownerId"))
   })
   test("should throw an error if the ticket price is negative", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const input = {
       name: "Sunset show",
       ticketPriceInCents: -10,
@@ -61,11 +67,11 @@ describe("Create Event Use Case", () => {
       date: new Date(new Date().setHours(new Date().getHours() + 1)),
       ownerId: crypto.randomUUID(),
     }
-    const output = createEvent.execute(input)
+    const output = sut.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid ticket price"))
   })
   test("should throw an error if the latitude is invalid", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const input = {
       name: "Mindset Event",
       ticketPriceInCents: 2000,
@@ -74,11 +80,11 @@ describe("Create Event Use Case", () => {
       date: new Date(new Date().setHours(new Date().getHours() + 1)),
       ownerId: crypto.randomUUID(),
     }
-    const output = createEvent.execute(input)
+    const output = sut.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid latitude"))
   })
   test("should throw an error if the longitude is invalid", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const input = {
       name: "GameDay Event",
       ticketPriceInCents: 2000,
@@ -87,39 +93,56 @@ describe("Create Event Use Case", () => {
       date: new Date(new Date().setHours(new Date().getHours() + 1)),
       ownerId: crypto.randomUUID(),
     }
-    const output = createEvent.execute(input)
+    const output = sut.execute(input)
     await expect(output).rejects.toThrow(new Error("Invalid longitude"))
   })
   test("should throw an error if the date is in the past", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const input = {
-      name: "FSC Presencial",
+      name: "Feira de ciencias",
       ticketPriceInCents: 2000,
       latitude: -90,
       longitude: -180,
       date: new Date(new Date().setHours(new Date().getHours() - 2)),
       ownerId: crypto.randomUUID(),
     }
-    const output = createEvent.execute(input)
+    const output = sut.execute(input)
     await expect(output).rejects.toThrow(
       new Error("Date must be in the future")
     )
   })
   test("should throw an error if an event already exists for the same date, latitude and longitude", async () => {
-    const createEvent = new CreateEvent(new EventRepositoryDatabase(database))
+    const { sut } = makeSut()
     const date = new Date(new Date().setHours(new Date().getHours() + 2))
     const input = {
-      name: "FSC Presencial",
+      name: "Feira de ciencias",
       ticketPriceInCents: 2000,
       latitude: -90,
       longitude: -180,
       date,
       ownerId: crypto.randomUUID(),
     }
-    const output = await createEvent.execute(input)
+    const output = await sut.execute(input)
     expect(output.name).toBe(input.name)
     expect(output.ticketPriceInCents).toBe(input.ticketPriceInCents)
-    const output2 = createEvent.execute(input)
+    const output2 = sut.execute(input)
     expect(output2).rejects.toThrow(new Error("Event already exists"))
+  })
+  test("should call EventRepository create with correct values", async () => {
+    const { sut, eventRepository } = makeSut()
+    const spy = vi.spyOn(eventRepository, "create")
+    const input = {
+      name: "Feira de ciencias",
+      ticketPriceInCents: 2000,
+      latitude: -90,
+      longitude: -180,
+      date: new Date(new Date().setHours(new Date().getHours() + 1)),
+      ownerId: crypto.randomUUID(),
+    }
+    await sut.execute(input)
+    expect(spy).toHaveBeenCalledWith({
+      id: expect.any(String),
+      ...input,
+    })
   })
 })
