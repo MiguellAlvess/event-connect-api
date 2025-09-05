@@ -1,23 +1,46 @@
-import { EventRepositoryDatabase } from "./infra/repository/event-repository.js"
-import { CreateEvent } from "./application/create-event.js"
-import { db } from "./infra/db/client.js"
+import { EventRepositoryDatabase } from "../repository/event-repository.js"
+import { CreateEvent } from "../../application/create-event.js"
+import { db } from "../db/client.js"
 import fastify from "fastify"
 import type { ZodTypeProvider } from "fastify-type-provider-zod"
 import {
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod"
 import z from "zod"
-
+import fastifySwagger from "@fastify/swagger"
+import fastifySwaggerUI from "@fastify/swagger-ui"
 const app = fastify()
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
+await app.register(fastifySwagger, {
+  openapi: {
+    info: {
+      title: "Event Connect",
+      description: "API for Event Connect",
+      version: "1.0.0",
+    },
+    servers: [
+      {
+        description: "Local server",
+        url: "http://localhost:8080",
+      },
+    ],
+  },
+  transform: jsonSchemaTransform,
+})
+await app.register(fastifySwaggerUI, {
+  routePrefix: "/docs",
+})
+
 app.withTypeProvider<ZodTypeProvider>().route({
   method: "POST",
   url: "/events",
   schema: {
+    tags: ["Events"],
     body: z.object({
       name: z.string(),
       ticketPriceInCents: z.number(),
@@ -67,6 +90,7 @@ app.withTypeProvider<ZodTypeProvider>().route({
   },
 })
 
-app.listen({ port: 3000 }, () => {
-  console.log("Server is running on port 3000")
+await app.ready()
+await app.listen({ port: 8080 }, () => {
+  console.log("Server is running on port 8080")
 })
