@@ -5,6 +5,7 @@ import { EventRepositoryDatabase } from "../infra/repository/event-repository.js
 import { CreateEvent } from "./create-event.js"
 
 import { StartedPostgreSqlContainer } from "@testcontainers/postgresql"
+import { InvalidOwnerIdError } from "./errors/index.js"
 
 describe("Create Event Use Case", () => {
   let database: typeof db
@@ -55,7 +56,7 @@ describe("Create Event Use Case", () => {
       ownerId: "invalid-uuid",
     }
     const output = sut.execute(input)
-    await expect(output).rejects.toThrow(new Error("Invalid ownerId"))
+    await expect(output).rejects.toThrow(new InvalidOwnerIdError())
   })
   test("should throw an error if the ticket price is negative", async () => {
     const { sut } = makeSut()
