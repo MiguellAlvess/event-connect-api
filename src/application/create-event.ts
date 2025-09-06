@@ -1,4 +1,5 @@
 import { OnSiteEvent } from "../domain/on-site-event.js"
+import { InvalidOwnerIdError } from "./errors/index.js"
 
 interface Input {
   ownerId: string
@@ -30,7 +31,7 @@ export class CreateEvent {
         ownerId
       )
     ) {
-      throw new Error("Invalid ownerId")
+      throw new InvalidOwnerIdError()
     }
     if (ticketPriceInCents < 0) {
       throw new Error("Invalid ticket price")

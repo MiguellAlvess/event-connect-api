@@ -11,6 +11,7 @@ import {
 import z from "zod"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUI from "@fastify/swagger-ui"
+import { InvalidOwnerIdError } from "../../application/errors/index.js"
 const app = fastify()
 
 app.setValidatorCompiler(validatorCompiler)
@@ -60,6 +61,7 @@ app.withTypeProvider<ZodTypeProvider>().route({
         ownerId: z.uuid(),
       }),
       400: z.object({
+        code: z.string(),
         message: z.string(),
       }),
     },
@@ -85,7 +87,14 @@ app.withTypeProvider<ZodTypeProvider>().route({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error(error)
-      return res.status(400).send({ message: error.message })
+      if (error instanceof InvalidOwnerIdError) {
+        return res
+          .status(400)
+          .send({ message: error.message, code: error.code })
+      }
+      return res
+        .status(400)
+        .send({ message: error.message, code: "SERVER_ERROR" })
     }
   },
 })
