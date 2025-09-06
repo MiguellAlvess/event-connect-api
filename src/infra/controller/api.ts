@@ -11,7 +11,12 @@ import {
 import z from "zod"
 import fastifySwagger from "@fastify/swagger"
 import fastifySwaggerUI from "@fastify/swagger-ui"
-import { InvalidOwnerIdError } from "../../application/errors/index.js"
+import {
+  EventAlreadyExistsError,
+  InvalidParameterError,
+  NotFoundError,
+} from "../../application/errors/index.js"
+
 const app = fastify()
 
 app.setValidatorCompiler(validatorCompiler)
@@ -64,6 +69,14 @@ app.withTypeProvider<ZodTypeProvider>().route({
         code: z.string(),
         message: z.string(),
       }),
+      404: z.object({
+        code: z.string(),
+        message: z.string(),
+      }),
+      409: z.object({
+        code: z.string(),
+        message: z.string(),
+      }),
     },
   },
   handler: async (req, res) => {
@@ -87,9 +100,19 @@ app.withTypeProvider<ZodTypeProvider>().route({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error(error)
-      if (error instanceof InvalidOwnerIdError) {
+      if (error instanceof InvalidParameterError) {
         return res
           .status(400)
+          .send({ message: error.message, code: error.code })
+      }
+      if (error instanceof NotFoundError) {
+        return res
+          .status(404)
+          .send({ message: error.message, code: error.code })
+      }
+      if (error instanceof EventAlreadyExistsError) {
+        return res
+          .status(409)
           .send({ message: error.message, code: error.code })
       }
       return res
